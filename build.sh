@@ -8,13 +8,13 @@
 KERNEL_DIR="$(pwd)"
 
 # Zip Name
-ZIPNAME="Nexus-EAS"
+ZIPNAME="Nexus-OAT"
 
 # Specify compiler ( eva , azure , proton , arter , aosp & nexus )
 COMPILER=nexus
 
 # Device Name and Model
-MODEL=Redmi Note 7
+MODEL="Redmi Note 7"
 DEVICE=lavender
 
 # Specify Version
@@ -34,7 +34,7 @@ DEFCONFIG=lavender-perf_defconfig
 
 # Optimizations
 LTO=1
-if [ $LTO = "1" ]; then
+if [ $LTO = "1 " ]; then
 echo "CONFIG_THIN_ARCHIVES=y
 CONFIG_LD_DEAD_CODE_DATA_ELIMINATION=y
 CONFIG_LTO=y
@@ -54,7 +54,7 @@ LINKER=ld.lld
 IMAGE=$(pwd)/out/arch/arm64/boot/Image.gz-dtb
 
 # Verbose Build
-VERBOSE=0
+VERBOSE=1
 
 # Kernel Version
 KERVER=$(make kernelversion)
@@ -62,9 +62,9 @@ KERVER=$(make kernelversion)
 COMMIT_HEAD=$(git log --oneline -1)
 
 # Date and Time
-DATE=$(TZ=Asia/Kolkata date +"%Y%m%d-%T")
+DATE=$(TZ=Europe/Budapest date +"%Y%m%d-%T")
 START=$(date +"%s")
-TANGGAL=$(date +"%F%S")
+TANGGAL=$(date +"%F-%H%M%S")
 
 FINAL_ZIP=${ZIPNAME}-v10.2-${VERSION}-${DEVICE}-${TANGGAL}.zip
 ##----------------------------------------------------------##
@@ -73,7 +73,7 @@ FINAL_ZIP=${ZIPNAME}-v10.2-${VERSION}-${DEVICE}-${TANGGAL}.zip
 function clone() {
     # Clone Toolchain
         if [ $COMPILER = "azure" ]; then
-                post_msg " Cloning Azure Clang ToolChain "
+                #post_msg " Cloning Azure Clang ToolChain "
 		git clone --depth=1  https://gitlab.com/ImSpiDy/azure-clang.git clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "proton" ]; then
@@ -81,22 +81,22 @@ function clone() {
 		git clone --depth=1  https://github.com/kdrag0n/proton-clang.git clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "nexus" ]; then
-		post_msg " Cloning Nexus Clang ToolChain "
+		#post_msg " Cloning Nexus Clang ToolChain "
 		git clone --depth=1 -b nexus-15  https://gitlab.com/Project-Nexus/nexus-clang.git clang
 		PATH="${KERNEL_DIR}/clang/bin:$PATH"
 		elif [ $COMPILER = "aosp" ]; then
-		post_msg " Cloning Aosp Clang 14.0.2 ToolChain "
+		#post_msg " Cloning Aosp Clang 14.0.2 ToolChain "
 		git clone --depth=1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r445002.git -b 12.0 aosp-clang
                 git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
                 git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
                 PATH="${KERNEL_DIR}/aosp-clang/bin:${KERNEL_DIR}/gcc/bin:${KERNEL_DIR}/gcc32/bin:${PATH}"
 		elif [ $COMPILER = "arter" ]; then
-		post_msg " Cloning Arter GCC 9.3.0 ToolChain "
+		#post_msg " Cloning Arter GCC 9.3.0 ToolChain "
 		git clone --depth=1 -b gcc64 https://github.com/ImSpiDy/gcc-9.3.0 gcc64
 		git clone --depth=1 -b gcc32 https://github.com/ImSpiDy/gcc-9.3.0 gcc32
 		PATH=$KERNEL_DIR/gcc64/bin/:$KERNEL_DIR/gcc32/bin/:/usr/bin:$PATH
 		elif [ $COMPILER = "eva" ]; then
-		post_msg " Cloning Eva GCC ToolChain "
+		#post_msg " Cloning Eva GCC ToolChain "
 		git clone --depth=1 https://github.com/mvaisakh/gcc-arm64.git gcc64
 		git clone --depth=1 https://github.com/mvaisakh/gcc-arm.git gcc32
 		PATH=$KERNEL_DIR/gcc64/bin/:$KERNEL_DIR/gcc32/bin/:/usr/bin:$PATH
@@ -129,28 +129,32 @@ function exports() {
 
 if [ "$1" = "--old" ]; then
 function post_msg() {
-    curl -s -X POST "https://api.telegram.org/bot$token/sendMessage" \
-        -d chat_id="$chat_id" \
-        -d "disable_web_page_preview=true" \
-        -d "parse_mode=html" \
-        -d text="$1"
+	echo $1
+#    curl -s -X POST "https://api.telegram.org/bot$token/sendMessage" \
+#        -d chat_id="$chat_id" \
+#        -d "disable_web_page_preview=true" \
+#        -d "parse_mode=html" \
+#        -d text="$1"
 }
 fi 
 
 ##----------------------------------------------------------##
 
 function push() {
-    curl -F document=@$1 "https://api.telegram.org/bot$token/sendDocument" \
-         -F chat_id="$chat_id" \
-         -F "disable_web_page_preview=true" \
-         -F "parse_mode=html" \
-         -F caption="$2"
+	echo $1
+	echo $2
+#    curl -F document=@$1 "https://api.telegram.org/bot$token/sendDocument" \
+#         -F chat_id="$chat_id" \
+#         -F "disable_web_page_preview=true" \
+#         -F "parse_mode=html" \
+#         -F caption="$2"
 }
 
 ##----------------------------------------------------------##
 
 function compile() {
-	post_msg "<b>$KBUILD_BUILD_VERSION CI Build Triggered</b>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Pipeline Host : </b><code>$KBUILD_BUILD_HOST</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>Branch : </b><code>$CI_BRANCH</code>%0A<b>Top Commit : </b><a href='$DRONE_COMMIT_LINK'>$COMMIT_HEAD</a>"
+#	post_msg "<b>$KBUILD_BUILD_VERSION CI Build Triggered</b>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Kolkata date)</code>%0A<b>Device : </b><code>$MODEL [$DEVICE]</code>%0A<b>Pipeline Host : </b><code>$KBUILD_BUILD_HOST</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0A<b>Branch : </b><code>$CI_BRANCH</code>%0A<b>Top Commit : </b><a href='$DRONE_COMMIT_LINK'>$COMMIT_HEAD</a>"
+                                echo "Config def used: ${DEFCONFIG}"
 	                        make O=out ARCH=arm64 ${DEFCONFIG}
 	                        if [ -d ${KERNEL_DIR}/clang ]; then
 	                        make -kj$(nproc --all) O=out \
@@ -199,7 +203,7 @@ function compile() {
 				fi
 
     if ! [ -a "$IMAGE" ]; then
-        push "error.log" "Build Throws Errors"
+        #push "error.log" "Build Throws Errors"
         exit 1
     fi
     # Copy Files To AnyKernel3 Zip
